@@ -322,7 +322,7 @@ namespace AspNetCore.MongoDbIdentity
                 throw new ArgumentNullException(nameof(user));
             }
 
-            return Task.FromResult<string>(user.UserName);
+            return Task.FromResult<string>(user.Email);
         }
 
         public Task<bool> GetEmailConfirmedAsync(TUser user, CancellationToken cancellationToken)
