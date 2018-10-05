@@ -12,7 +12,11 @@ namespace AspNetCore.MongoDbIdentity
 {
     public class UserStore<TUser> : IUserStore<TUser>,
         IUserLoginStore<TUser>,
-        IUserClaimStore<TUser>
+        IUserClaimStore<TUser>,
+        IUserPasswordStore<TUser>,
+        IUserSecurityStampStore<TUser>,
+        IUserTwoFactorStore<TUser>,
+        IUserEmailStore<TUser>
         where TUser : MongoIdentityUser
     {
         private readonly IMongoCollection<TUser> _userCollection;
@@ -215,6 +219,162 @@ namespace AspNetCore.MongoDbIdentity
 
             return await _userCollection.Find(u => u.Claims.Any(c => c.Type == claim.Type && c.Value == claim.Value))
                 .ToListAsync(cancellationToken);
+        }
+
+        public Task SetPasswordHashAsync(TUser user, string passwordHash, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.PasswordHash = passwordHash;
+            return Task.CompletedTask;
+        }
+
+        public Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult<string>(user.PasswordHash);
+        }
+
+        public Task<bool> HasPasswordAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult<bool>(!string.IsNullOrEmpty(user.PasswordHash));
+        }
+
+        public Task SetSecurityStampAsync(TUser user, string stamp, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (string.IsNullOrEmpty(stamp))
+            {
+                throw new ArgumentNullException(nameof(stamp));
+            }
+
+            user.SecurityStamp = stamp;
+            return Task.CompletedTask;
+        }
+
+        public Task<string> GetSecurityStampAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult<string>(user.SecurityStamp);
+        }
+
+        public Task SetTwoFactorEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.TwoFactorEnabled = enabled;
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> GetTwoFactorEnabledAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult<bool>(user.TwoFactorEnabled);
+        }
+
+        public Task SetEmailAsync(TUser user, string email, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new ArgumentNullException(nameof(email));
+            }
+
+            user.Email = email;
+            return Task.CompletedTask;
+        }
+
+        public Task<string> GetEmailAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult<string>(user.UserName);
+        }
+
+        public Task<bool> GetEmailConfirmedAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult<bool>(user.EmailConfirmed);
+        }
+
+        public Task SetEmailConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            user.EmailConfirmed = confirmed;
+            return Task.CompletedTask;
+        }
+
+        public async Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        {
+            return await _userCollection.Find(u => u.NormalizedEmail == normalizedEmail).FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public Task<string> GetNormalizedEmailAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult<string>(user.NormalizedEmail);
+        }
+
+        public Task SetNormalizedEmailAsync(TUser user, string normalizedEmail, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (string.IsNullOrEmpty(normalizedEmail))
+            {
+                throw new ArgumentNullException(nameof(normalizedEmail));
+            }
+
+            user.NormalizedEmail = normalizedEmail;
+            return Task.CompletedTask;
         }
 
         protected bool IsObjectId(string id)
