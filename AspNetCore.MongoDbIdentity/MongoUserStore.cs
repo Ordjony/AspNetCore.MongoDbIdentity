@@ -10,7 +10,7 @@ using MongoDB.Driver;
 
 namespace AspNetCore.MongoDbIdentity
 {
-    public class UserStore<TUser> : IUserStore<TUser>,
+    public class MongoUserStore<TUser> : IUserStore<TUser>,
         IUserLoginStore<TUser>,
         IUserClaimStore<TUser>,
         IUserPasswordStore<TUser>,
@@ -21,7 +21,7 @@ namespace AspNetCore.MongoDbIdentity
     {
         private readonly IMongoCollection<TUser> _userCollection;
 
-        public UserStore(IMongoCollection<TUser> userCollection)
+        public MongoUserStore(IMongoCollection<TUser> userCollection)
         {
             _userCollection = userCollection;
         }

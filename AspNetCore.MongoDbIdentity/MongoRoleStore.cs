@@ -1,0 +1,130 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using MongoDB.Bson;
+using MongoDB.Driver;
+
+namespace AspNetCore.MongoDbIdentity
+{
+    public class MongoRoleStore<TRole> : IRoleStore<TRole>
+        where TRole : MongoIdentityRole
+    {
+        private readonly IMongoCollection<TRole> _roleCollection;
+
+        public MongoRoleStore(IMongoCollection<TRole> roleCollection)
+        {
+            _roleCollection = roleCollection;
+        }
+
+        public async Task<IdentityResult> CreateAsync(TRole role, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.Id = ObjectId.GenerateNewId().ToString();
+            await _roleCollection.InsertOneAsync(role, new InsertOneOptions(), cancellationToken);
+            return IdentityResult.Success;
+        }
+
+        public async Task<IdentityResult> UpdateAsync(TRole role, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            await _roleCollection.ReplaceOneAsync(u => u.Id == role.Id, role, new UpdateOptions(), cancellationToken);
+            return IdentityResult.Success;
+        }
+
+        public async Task<IdentityResult> DeleteAsync(TRole role, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            await _roleCollection.DeleteOneAsync(r => r.Id == role.Id, cancellationToken);
+            return IdentityResult.Success;
+        }
+
+        public Task<string> GetRoleIdAsync(TRole role, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult<string>(role.Id);
+        }
+
+        public Task<string> GetRoleNameAsync(TRole role, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult<string>(role.Name);
+        }
+
+        public Task SetRoleNameAsync(TRole role, string roleName, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.Name = roleName;
+            return Task.CompletedTask;
+        }
+
+        public Task<string> GetNormalizedRoleNameAsync(TRole role, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            return Task.FromResult<string>(role.NormalizedName);
+        }
+
+        public Task SetNormalizedRoleNameAsync(TRole role, string normalizedName, CancellationToken cancellationToken)
+        {
+            if (role == null)
+            {
+                throw new ArgumentNullException(nameof(role));
+            }
+
+            role.NormalizedName = normalizedName;
+            return Task.CompletedTask;
+        }
+
+        public async Task<TRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        {
+            if (!IsObjectId(roleId))
+            {
+                return null;
+            }
+
+            return await _roleCollection.Find(r => r.Id == roleId).FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<TRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        {
+            return await _roleCollection.Find(r => r.NormalizedName == normalizedRoleName).FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        protected bool IsObjectId(string id)
+        {
+            return ObjectId.TryParse(id, out var objId);
+        }
+    }
+}
