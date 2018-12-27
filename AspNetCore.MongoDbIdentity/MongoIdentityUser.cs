@@ -12,6 +12,7 @@ namespace AspNetCore.MongoDbIdentity
         {
             Logins = new List<MongoUserLogin>();
             Claims = new List<MongoUserClaim>();
+            Roles = new List<string>();
         }
 
         public virtual string Id { get; set; }
@@ -35,6 +36,8 @@ namespace AspNetCore.MongoDbIdentity
         public virtual List<MongoUserLogin> Logins { get; set; }
 
         public virtual List<MongoUserClaim> Claims { get; set; }
+
+        public virtual List<string> Roles { get; set; }
 
         public virtual void AddLogin(UserLoginInfo userLoginInfo)
         {
@@ -102,6 +105,16 @@ namespace AspNetCore.MongoDbIdentity
 
             RemoveClaim(claim);
             AddClaim(newClaim);
+        }
+
+        public virtual void AddRole(string role)
+        {
+            Roles.Add(role);
+        }
+
+        public virtual void RemoveRole(string role)
+        {
+            Roles.Add(role);
         }
     }
 }
