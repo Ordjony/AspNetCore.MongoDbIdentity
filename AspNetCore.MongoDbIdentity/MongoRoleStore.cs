@@ -24,7 +24,7 @@ namespace AspNetCore.MongoDbIdentity
                 throw new ArgumentNullException(nameof(role));
             }
 
-            role.Id = ObjectId.GenerateNewId().ToString();
+            role.Id = ObjectId.GenerateNewId();
             await _roleCollection.InsertOneAsync(role, new InsertOneOptions(), cancellationToken);
             return IdentityResult.Success;
         }
@@ -58,7 +58,7 @@ namespace AspNetCore.MongoDbIdentity
                 throw new ArgumentNullException(nameof(role));
             }
 
-            return Task.FromResult<string>(role.Id);
+            return Task.FromResult<string>(role.Id.ToString());
         }
 
         public Task<string> GetRoleNameAsync(TRole role, CancellationToken cancellationToken)
@@ -105,12 +105,13 @@ namespace AspNetCore.MongoDbIdentity
 
         public async Task<TRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
-            if (!IsObjectId(roleId))
+            ObjectId roleObjectId;
+            if (!IsObjectId(roleId, out roleObjectId))
             {
                 return null;
             }
 
-            return await _roleCollection.Find(r => r.Id == roleId).FirstOrDefaultAsync(cancellationToken);
+            return await _roleCollection.Find(r => r.Id == roleObjectId).FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<TRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
@@ -122,9 +123,9 @@ namespace AspNetCore.MongoDbIdentity
         {
         }
 
-        protected bool IsObjectId(string id)
+        protected bool IsObjectId(string id, out ObjectId objectId)
         {
-            return ObjectId.TryParse(id, out var objId);
+            return ObjectId.TryParse(id, out objectId);
         }
     }
 }

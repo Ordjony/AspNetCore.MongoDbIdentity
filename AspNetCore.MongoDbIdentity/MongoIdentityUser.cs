@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 
 namespace AspNetCore.MongoDbIdentity
 {
@@ -16,8 +16,7 @@ namespace AspNetCore.MongoDbIdentity
             Roles = new List<string>();
         }
 
-        [BsonId]
-        public virtual string Id { get; set; }
+        public virtual ObjectId Id { get; set; }
 
         public virtual string UserName { get; set; }
 

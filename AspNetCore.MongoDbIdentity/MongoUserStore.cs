@@ -33,7 +33,12 @@ namespace AspNetCore.MongoDbIdentity
 
         public Task<string> GetUserIdAsync(TUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.Id);
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            return Task.FromResult(user.Id.ToString());
         }
 
         public Task<string> GetUserNameAsync(TUser user, CancellationToken cancellationToken)
@@ -60,7 +65,7 @@ namespace AspNetCore.MongoDbIdentity
 
         public async Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken)
         {
-            user.Id = ObjectId.GenerateNewId().ToString();
+            user.Id = ObjectId.GenerateNewId();
             await _userCollection.InsertOneAsync(user, new InsertOneOptions(), cancellationToken);
             return IdentityResult.Success;
         }
@@ -79,12 +84,13 @@ namespace AspNetCore.MongoDbIdentity
 
         public async Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            if (!IsObjectId(userId))
+            ObjectId userObjectId;
+            if (!IsObjectId(userId, out userObjectId))
             {
                 return null;
             }
 
-            return await _userCollection.Find(u => u.Id == userId).FirstOrDefaultAsync(cancellationToken);
+            return await _userCollection.Find(u => u.Id == userObjectId).FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
@@ -408,9 +414,9 @@ namespace AspNetCore.MongoDbIdentity
             return users;
         }
 
-        protected bool IsObjectId(string id)
+        protected bool IsObjectId(string id, out ObjectId objectId)
         {
-            return ObjectId.TryParse(id, out var objId);
+            return ObjectId.TryParse(id, out objectId);
         }
     }
 }
